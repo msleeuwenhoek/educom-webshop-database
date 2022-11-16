@@ -21,7 +21,7 @@ class PageController
         switch ($this->model->page) {
             case 'contact':
                 require_once "./models/user_model.php";
-                $this->model = new User();
+                $this->model = new User(null);
                 $this->model->validateContact();
 
                 $page = 'contact';
@@ -34,9 +34,12 @@ class PageController
                 break;
             case 'register':
                 require_once "./models/user_model.php";
-                $this->model = new User();
+                require_once "./crud/user_crud.php";
+                $userCrud = new UserCrud();
+                $this->model = new User($userCrud);
                 $this->model->validateRegistration();
                 if ($this->model->valid) {
+                    $this->model->storeUser();
                     $page = 'login';
                 } else {
                     $page = 'register';
@@ -44,11 +47,13 @@ class PageController
                 break;
             case 'login':
                 require_once "./models/user_model.php";
-
-                $this->model = new User();
+                require_once "./crud/user_crud.php";
+                $userCrud = new UserCrud();
+                $this->model = new User($userCrud);
                 $this->model->validateLogin();
 
                 if ($this->model->valid) {
+
                     logUserIn($this->model->name);
                     $page = 'home';
                 } else {

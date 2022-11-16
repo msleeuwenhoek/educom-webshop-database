@@ -22,8 +22,13 @@ class User extends PageModel
     public $confirm_password = '';
     public $confirm_passwordErr = '';
     public $valid = false;
+    public $user = "";
+    public $userId = '';
 
-
+    public function __construct($userCrud)
+    {
+        $this->userCrud = $userCrud;
+    }
 
     public function test_input($data)
     {
@@ -33,12 +38,8 @@ class User extends PageModel
         return $data;
     }
 
-
     public function  validateRegistration()
-    {
-
-
-        // validating form data
+    {   // validating form data
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if (empty($_POST["name"])) {
@@ -73,100 +74,49 @@ class User extends PageModel
             }
         }
 
-
-
         // checking if all data is valid
         if ($this->name !== "" && $this->email !== "" && $this->password !== "" && $this->confirm_password !== "" && $this->nameErr === "" && $this->emailErr === "" && $this->passwordErr === "" && $this->confirm_passwordErr === "") {
-            $users_file = fopen("./users/users.txt", "r");
-            while (!feof($users_file)) {
-                $user = fgets($users_file);
-                if (stripos(
-                    $user,
-                    $this->email
-                ) !== false) {
-                    $this->emailErr = "Email is already taken";
-                }
+            if ($this->userCrud->findUser($this->email)->num_rows > 0) {
+                $this->emailErr = "Email is already taken";
             }
-            fclose($users_file);
 
             if ($this->emailErr === "") {
                 $this->valid = true;
-
-                $users_file = fopen("./users/users.txt", "a");
-                $new_user = "$this->email|$this->name|$this->password\n";
-                fwrite(
-                    $users_file,
-                    $new_user
-                );
-                fclose($users_file);
             }
         }
     }
 
     public function validateLogin()
-    {
-
-
-        // validating form data
+    {   // validating form data
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if (empty($_POST["email"])) {
                 $this->emailErr = "Email is required";
             } else {
                 $this->email = $this->test_input($_POST["email"]);
-                $users_file = fopen("./users/users.txt", "r");
-
-                while (!feof($users_file)) {
-                    $user = fgets($users_file);
-                    if (stripos($user, $this->email) !== false) {
-                        $this->emailErr = "";
-                        break;
-                    } else {
-                        $this->emailErr = "Email not found";
-                    }
-                }
-                fclose($users_file);
             }
 
             if (empty($_POST["password"])) {
                 $this->passwordErr = "Password is required";
             } else {
                 $this->password = $this->test_input($_POST["password"]);
-                $users_file = fopen("./users/users.txt", "r");
-                while (!feof($users_file)) {
-                    $user = fgets($users_file);
-                    $user_data = explode("|", $user);
-
-                    if (stripos($user, $this->email) !== false && $this->password === trim($user_data[2])) {
-                        $this->passwordErr = "";
-                        break;
-                    } elseif (stripos($user, $this->email) !== false) {
-                        $this->passwordErr = "Password is incorrect";
-                    }
-                }
-                fclose($users_file);
             }
         }
-
-        //set username of logged in user
-        $users_file = fopen("./users/users.txt", "r");
-        while (!feof($users_file)) {
-            $user = fgets($users_file);
-            $user_data = explode("|", $user);
-
-            if (stripos($user, $this->email) !== false) {
-                $this->name = $user_data[1];
-                break;
-            }
-        }
-        fclose($users_file);
-
         // checking if all data matched database and was valid
         if ($this->email !== "" && $this->password !== ""  && $this->emailErr === "" && $this->passwordErr === "") {
-            $this->valid = true;
+            $this->user = $this->userCrud->findUser($this->email)->fetch_assoc();
+            if (empty($this->user)) {
+                $this->emailErr = "Couldn't find an account with this email";
+            } elseif ($this->user['password'] !== $this->password) {
+                $this->passwordErr = "Incorrect password";
+            } else {
+                $this->email = $this->user['email'];
+                $this->name = $this->user['name'];
+                $this->userId = $this->user['id'];
+                $this->valid = true;
+            }
         }
     }
-
 
     public function validateContact()
     {
@@ -216,5 +166,10 @@ class User extends PageModel
         if ($this->title !== "" && $this->name !== "" && $this->email !== "" && $this->phonenumber !== "" && $this->communication_channel !== "" && $this->titleErr === "" &&  $this->nameErr === "" && $this->emailErr === "" && $this->phonenumberErr === "" && $this->communication_channelErr === "") {
             $this->valid = true;
         }
+    }
+
+    public function storeUser()
+    {
+        $this->userCrud->createUser($this->name, $this->email, $this->password);
     }
 }

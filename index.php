@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 require_once './controllers/page_controller.php';
 require_once './models/page_model.php';
 
