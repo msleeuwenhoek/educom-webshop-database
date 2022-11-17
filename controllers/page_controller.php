@@ -70,6 +70,14 @@ class PageController
                 logUserOut();
                 $page = 'home';
                 break;
+            case 'webshop':
+                require_once "./models/product_model.php";
+                require_once "./crud/product_crud.php";
+                $productCrud = new ProductCrud();
+                $this->model = new ProductModel($productCrud);
+                $this->model->showProducts();
+                $page = 'webshop';
+                break;
             default:
                 $page = 'unknown';
         }
@@ -103,6 +111,10 @@ class PageController
             case 'register':
                 include_once "./views/registration_form.php";
                 $view = new RegistrationForm($this->model);
+                break;
+            case 'webshop':
+                include_once "./views/webshop_doc.php";
+                $view = new WebshopDoc($this->model);
                 break;
             case 'unknown':
                 include_once "./views/basic_doc.php";

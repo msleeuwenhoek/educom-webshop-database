@@ -17,7 +17,7 @@ class HtmlDoc
         $this->showTabTitle();
 
         echo "</title>
-            <link rel='stylesheet' href='./CSS/index.css' />
+            <link rel='stylesheet' href='./CSS/stylesheet.css' />
         </head>
         ";
     }

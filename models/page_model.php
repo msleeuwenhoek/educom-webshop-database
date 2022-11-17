@@ -21,7 +21,7 @@ class PageModel
 
     public function createMenu()
     {
-        $this->pages = ['home' => 'Home', 'about' => 'About', 'contact' => 'Contact'];
+        $this->pages = ['home' => 'Home', 'about' => 'About', 'webshop' => 'Webshop', 'contact' => 'Contact'];
         if (isUserLoggedIn()) {
             $this->pages['logout'] = "Log out " . getLoggedInUsername();
         } else {
